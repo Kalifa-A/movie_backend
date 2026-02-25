@@ -12,6 +12,21 @@ const Movie = require('./models/Movie');
 
 const app = express();
 
+// --- UPDATE THIS SECTION ---
+app.use(cors({
+  origin: [
+    "https://movie-update-rn31.vercel.app", 
+    "http://localhost:5173"
+  ],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "x-auth-token"] // Add this to allow your JWT header
+}));
+// ---------------------------
+
+app.use(express.json());
+
+// ... your routes (login, register, etc.) follow below
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -117,9 +132,7 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('✅ Connected to MongoDB Atlas'))
     .catch(err => console.error('❌ Database connection error:', err));
 
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Server flowing on http://localhost:${PORT}`));
-}
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server flowing on http://localhost:${PORT}`));
 
 module.exports = app;
