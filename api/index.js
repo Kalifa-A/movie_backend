@@ -116,5 +116,8 @@ app.delete('/api/watchlist/:id', auth, async (req, res) => {
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('✅ Connected to MongoDB Atlas'))
     .catch(err => console.error('❌ Database connection error:', err));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server flowing on http://localhost:${PORT}`));
 
 module.exports = app;
+
