@@ -15,7 +15,7 @@ const app = express();
 // --- UPDATE THIS SECTION ---
 app.use(cors({
   origin: [
-    "https://movie-update-rn31.vercel.app", 
+    "https://instant-movie-update.vercel.app", 
     "http://localhost:5173"
   ],
   credentials: true,
