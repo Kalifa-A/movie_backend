@@ -4,49 +4,39 @@ const cors = require('cors');
 require('dotenv').config();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-console.log("--- SERVER STARTING ---");
-console.log("JWT Secret Key:", process.env.JWT_SECRET ? "FOUND" : "NOT FOUND");
-console.log("Mongo URI:", process.env.MONGO_URI ? "FOUND" : "NOT FOUND");
+
 const User = require('./models/User');
 const Movie = require('./models/Movie');
 
 const app = express();
 
-// --- UPDATE THIS SECTION ---
+// --- 1. CLEANED CORS (DO NOT REPEAT BELOW) ---
 app.use(cors({
   origin: [
     "https://instant-movie-update.vercel.app", 
     "http://localhost:5173"
   ],
   credentials: true,
-  allowedHeaders: ["Content-Type", "x-auth-token"] // Add this to allow your JWT header
+  allowedHeaders: ["Content-Type", "x-auth-token"]
 }));
-// ---------------------------
 
 app.use(express.json());
 
-// ... your routes (login, register, etc.) follow below
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// --- 1. THE MISSING AUTH MIDDLEWARE ---
+// --- 2. AUTH MIDDLEWARE ---
 const auth = (req, res, next) => {
     const token = req.header('x-auth-token');
     if (!token) return res.status(401).json({ message: "No token, authorization denied" });
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // This puts the user ID into the request
+        req.user = decoded; 
         next();
     } catch (err) {
         res.status(401).json({ message: "Token is not valid" });
     }
 };
 
-// --- 2. AUTH ROUTES (Register & Login) ---
-
+// --- 3. AUTH ROUTES ---
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -76,9 +66,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// --- 3. WATCHLIST ROUTES (Now Protected with 'auth') ---
-
-// Get User's Watchlist
+// --- 4. WATCHLIST ROUTES ---
 app.get('/api/watchlist', auth, async (req, res) => {
     try {
         const movies = await Movie.find({ userId: req.user.id }).sort({ addedAt: -1 });
@@ -88,7 +76,6 @@ app.get('/api/watchlist', auth, async (req, res) => {
     }
 });
 
-// Add to Watchlist
 app.post('/api/watchlist', auth, async (req, res) => {
     try {
         const { movieId, title, poster_path, vote_average } = req.body;
@@ -117,7 +104,6 @@ app.post('/api/watchlist', auth, async (req, res) => {
     }
 });
 
-// Remove from Watchlist
 app.delete('/api/watchlist/:id', auth, async (req, res) => {
     try {
         await Movie.findOneAndDelete({ movieId: req.params.id, userId: req.user.id });
@@ -127,12 +113,12 @@ app.delete('/api/watchlist/:id', auth, async (req, res) => {
     }
 });
 
-// Database Connection
+// --- 5. DATABASE & SERVER ---
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('✅ Connected to MongoDB Atlas'))
     .catch(err => console.error('❌ Database connection error:', err));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server flowing on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 module.exports = app;
